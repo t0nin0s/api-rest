@@ -24,4 +24,33 @@ function getUser(req, res){
   })
 }
 
-module.exports = { getUser }
+function getUsers(req, res){
+  User.find({}, (err, users) => {
+    if(err)return res.status(500).send({message: `Server Error ${err}`});
+    if(!users)return res.status(404).send({message: `No servers found on the DB `});
+
+    res.status(200).send({users});
+  });
+}
+
+function saveUser(req, res){
+  console.log('POST /api/user')
+  console.log(req.body)
+
+  let user = new User()
+  user.email = req.body.email;
+  user.displayName = req.body.displayName;
+  user.password = req.body.password;
+
+  user.save((err, userStored) => {
+    if(err) res.status(500).send({message: `Error while saving User on the DB ${err}`})
+
+    res.status(200).send({user: userStored})
+  })
+}
+
+module.exports = {
+  getUser,
+  getUsers,
+  saveUser
+ }
