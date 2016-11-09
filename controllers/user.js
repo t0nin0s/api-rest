@@ -3,22 +3,20 @@
 const User = require('../models/user')
 
 function getUser(req, res){
-  console.log("the paramas are " + req.body)
   if(!req.body.email){
     return res.status(400).send('Email is required')
   }
   if(!req.body.password){
     return res.status(400).send('Password is required')
   }
+  User.findOne({ email: req.body.email }, function(err, user) {
 
-  User.findOne({ username: req.body.email }, (err, user) => {
-    if(err)return res.status(500).send({ message: `Something happened when trying to findOne`})
-    user.comparePassword(req.body.password, (err, isMatch) => {
-      if(err) res.status(500).send({ message: `Something happened when comparing`})
+    user.comparePassword(req.body.password, function(err, isMatch) {
+      if(err)return res.status(500).send({ message: `Something happened when comparing`})
       if(!isMatch){
-        res.status(404).send({message: 'Invalid password'})
+        return res.status(404).send({message: 'Invalid password'})
       } else {
-        res.status(200).send('Congrats!Youre now logged in!')
+        return res.status(200).send('Congrats!Youre now logged in!')
       }
     })
   })
@@ -33,24 +31,26 @@ function getUsers(req, res){
   });
 }
 
-function saveUser(req, res){
+function signUp(req, res){
   console.log('POST /api/user')
   console.log(req.body)
+  if(!req.body.email || !req.body.password) res.status(500).send({ message: "Please pass name and password" })
 
-  let user = new User()
-  user.email = req.body.email;
-  user.displayName = req.body.displayName;
-  user.password = req.body.password;
+  let user = new User({
+    email: req.body.email,
+    displayName: req.body.displayName,
+    password: req.body.password
+  })
+
 
   user.save((err, userStored) => {
-    if(err) res.status(500).send({message: `Error while saving User on the DB ${err}`})
-
-    res.status(200).send({user: userStored})
+    if(err) return res.status(500).send({message: `User already exists`})
+    else return res.status(200).send({user: userStored})
   })
 }
 
 module.exports = {
   getUser,
   getUsers,
-  saveUser
+  signUp
  }
