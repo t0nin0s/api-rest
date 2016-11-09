@@ -1,6 +1,7 @@
 'use strict'
 
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 function getUser(req, res){
   if(!req.body.email){
@@ -16,7 +17,8 @@ function getUser(req, res){
       if(!isMatch){
         return res.status(404).send({message: 'Invalid password'})
       } else {
-        return res.status(200).send('Congrats!Youre now logged in!')
+        var myToken = jwt.sign({email: req.body.email}, 'my secret word')
+        return res.status(200).send({message: `Congrats!Youre now logged in!`, token: myToken })
       }
     })
   })
